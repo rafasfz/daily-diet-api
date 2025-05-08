@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify'
-import { createMealBodySchema } from './schemas'
+import { createMealBodySchema, updateMealBodySchema } from './schemas'
 import { randomUUID } from 'node:crypto'
 import { knex } from '../../database'
 import { checkSessionIdExists } from '../../middlewares/checkSessionIdExistis'
@@ -42,5 +42,29 @@ export async function mealsRoutes(app: FastifyInstance) {
     }
 
     return reply.status(200).send({ meal })
+  })
+
+  app.patch('/:id', async (request, reply) => {
+    const { id } = request.params as { id: string }
+    const { sessionId } = request.cookies
+
+    const mealData = updateMealBodySchema.parse(request.body)
+
+    const meal = await knex('meals').where({ id, user_id: sessionId }).first()
+
+    if (!meal) {
+      return reply.status(404).send({
+        error: 'Meal not found',
+      })
+    }
+
+    await knex('meals')
+      .where({ id, user_id: sessionId })
+      .update({
+        ...meal,
+        ...mealData,
+      })
+
+    return reply.status(200).send()
   })
 }

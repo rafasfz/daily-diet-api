@@ -7,3 +7,5 @@ export const createMealBodySchema = z.object({
   datetime: z.string().datetime(),
   is_on_diet: z.boolean(),
 })
+
+export const updateMealBodySchema = createMealBodySchema.partial()
