@@ -10,10 +10,6 @@ export async function mealsRoutes(app: FastifyInstance) {
   app.post('/', async (request, reply) => {
     const { sessionId } = request.cookies
 
-    if (!sessionId) {
-      return reply.status(401).send({ message: 'User not authenticated' })
-    }
-
     const mealData = {
       id: randomUUID(),
       ...createMealBodySchema.parse(request.body),
@@ -23,5 +19,13 @@ export async function mealsRoutes(app: FastifyInstance) {
     await knex('meals').insert(mealData)
 
     return reply.status(201).send()
+  })
+
+  app.get('/', async (request, reply) => {
+    const { sessionId } = request.cookies
+
+    const meals = await knex('meals').where('user_id', sessionId).select('*')
+
+    return reply.status(200).send(meals)
   })
 }
